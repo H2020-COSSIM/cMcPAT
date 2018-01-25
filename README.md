@@ -29,15 +29,15 @@ These changes have been proposed in the paper:
 
 Xi, Sam Likun, Hans Jacobson, Pradip Bose, Gu-Yeon Wei, and David Brooks. _"Quantifying sources of error in McPAT and potential impacts on architectural studies."_ In 2015 IEEE 21st International Symposium on High Performance Computer Architecture (HPCA), pp. 577-589. IEEE, 2015. 
 
-To validate their effect, cMcPAT has been run against the number reported in the official paper of McPAT (S. Li, J.-H. Ahn,_"McPAT: An integrated power, area, and timing modeling framework for multicore and manycore architectures"_, in Microarchitecture, 2009. MICRO-42. 42nd Annual IEEE/ACM International Symposium on, (pp. 469–480)) using the templates provided in the v1.3 release of McPAT. The table below summarizes the effect of the changes
+To validate their effect, cMcPAT has been run against the number reported in the official paper of McPAT (S. Li, J.-H. Ahn,_"McPAT: An integrated power, area, and timing modeling framework for multicore and manycore architectures"_, in Microarchitecture, 2009. MICRO-42. 42nd Annual IEEE/ACM International Symposium on, (pp. 469â€“480)) using the templates provided in the v1.3 release of McPAT. The table below summarizes the effect of the changes
 
 Processor | Published total power and area | McPAT v1.3 Results | cMcPAT Results | Estimation Improvement (negative numbers indicate a worse result by the cMcPAT)
 ------------ | ------------- | ------------- | ------------- | -------------
-Niagara | 63W / 378mm<sup2</sup> | 52.59W / 269.70mm<sup>2</sup> | 56.91W / 302.53mm<sup>2</sup> | **41,5%** / **30,3%**
-Niagara 2 | 84W / 342mm<sup2</sup> | 72.97W / 262.51mm<sup2</sup> | 76.54W / 279.01mm<sup2</sup> | **32,3%** / **20,8%**
-Alpha 21364 | 125W / 396mm<sup2</sup> | 86.03W / 311.69mm<sup2</sup> | 85.86W / 299.4mm<sup2</sup> | -0,4% / -14,6%
-Xeon Tulsa | 150W / 435mm<sup2</sup> | 134.94W / 411mm<sup2</sup> | 146.33W / 432mm<sup2</sup> |**75,6%** / **87,5%**
-Cortex A9 | 1.9W / 6.7mm<sup2</sup> | 1.74W / 5.40mm<sup2</sup> | 1.79W / 5.96mm<sup2</sup> | **31,3%** / **43,1%**
+Niagara | 63W / 378mm<sup>2</sup> | 52.59W / 269.70mm<sup>2</sup> | 56.91W / 302.53mm<sup>2</sup> | **41,5%** / **30,3%**
+Niagara 2 | 84W / 342mm<sup>2</sup> | 72.97W / 262.51mm<sup>2</sup> | 76.54W / 279.01mm<sup>2</sup> | **32,3%** / **20,8%**
+Alpha 21364 | 125W / 396mm<sup>2</sup> | 86.03W / 311.69mm<sup>2</sup> | 85.86W / 299.4mm<sup>2</sup> | -0,4% / -14,6%
+Xeon Tulsa | 150W / 435mm<sup>2</sup> | 134.94W / 411mm<sup>2</sup> | 146.33W / 432mm<sup>2</sup> |**75,6%** / **87,5%**
+Cortex A9 | 1.9W / 6.7mm<sup>2</sup> | 1.74W / 5.40mm<sup>2</sup> | 1.79W / 5.96mm<sup>2</sup> | **31,3%** / **43,1%**
 
 ## Compiling and executing cMcPAT
 
