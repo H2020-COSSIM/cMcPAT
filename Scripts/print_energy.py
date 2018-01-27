@@ -109,6 +109,9 @@ def main():
     global opts
     usage = "usage: %prog [options] <mcpat output file> <gem5 stats file>"
     parser = OptionParser(usage=usage)
+    parser.add_option("-q", "--quiet", 
+        action="store_false", dest="verbose", default=True,
+        help="don't print status messages to stdout")
     
     (opts, args) = parser.parse_args()
     if len(args) != 2:
