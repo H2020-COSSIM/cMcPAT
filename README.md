@@ -18,12 +18,12 @@ A number of changes have been made to technology specific parameters. The follow
 Technology Node | McPAT v1.3 | cMcPAT
 ------------ | ------------- | -------------
 180nm | 1.5 | 1.0/1.5
-90nm | 1 | 1.0/(0.7*0.7)
+90nm | 1 | 1.0/(0.7 * 0.7)
 65nm | 0.7 | 1.0/0.7
-45nm | 0.7*0.7 | 1
-32nm | 0.7*0.7*0.7 | 0.7
-22nm | 0.7*0.7*0.7*0.7 | 0.7*0.7
-16nm | 0.7*0.7*0.7*0.7*0.7 | 0.7*0.7*0.7
+45nm | 0.7 * 0.7 | 1
+32nm | 0.7 * 0.7 * 0.7 | 0.7
+22nm | 0.7 * 0.7 * 0.7 * 0.7 | 0.7 * 0.7
+16nm | 0.7 * 0.7 * 0.7 * 0.7 * 0.7 | 0.7 * 0.7 *0.7
 
 These changes have been proposed in the paper: 
 
