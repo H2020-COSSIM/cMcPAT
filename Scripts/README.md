@@ -8,7 +8,7 @@ The script can be used with the generic versions of gem5 and McPAT (available fr
 It should be noted that the script works with the following versions of gem5 and McPAT:
 - cgem5 and cMcPAT
 - McPAT v1.3
-- gem5 up tp Oct. 2017 stable release.
+- gem5 up to Oct. 2017 stable release.
 
 The GEM5toMcPAT.py is attributed to Daya Khudia's [GEM5toMcPAT](https://bitbucket.org/dskhudia/gem5tomcpat) tool. However a series of changes have been made to address the following:
 
