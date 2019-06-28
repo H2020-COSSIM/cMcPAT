@@ -7,13 +7,13 @@ This repository includes the modified version of McPAT that is employed in the C
 
 ### simpleCPU models of gem5
 
-McPAT is developed with certain processor types under consideration. As such it makes certain assumption about the presence, size and functioning of different processor components that may not be used in systems using simpleCPU models in gem5. For example, for simpleCPU models gem5 does not model or report several (micro)architectural structures that are typically found in a processor and therefore the output configuration files (config) do not provide enough information for McPAT. Additionally, by not employing certain structures or using structures with very small sizes, McPAT either reports errors or crashes in such cases.
+McPAT is developed with certain processor types under consideration. As such it makes a number of assumptions about the presence, size and functioning of different processor components that may not be used in systems using simpleCPU models in gem5. For example, for simpleCPU models, gem5 does not model or report several (micro)architectural structures that are typically found in a processor and therefore the output configuration files (config) do not provide enough information for McPAT. Additionally, by not employing certain structures or using structures with very small sizes, McPAT either reports errors or crashes in such cases.
 
 cMcPAT is modified to handle those cases. On top of that, it adds two Processor Description templates that can be used when trying to model ARM and x86 simpleCPU models from gem5. 
 
 ### Improving the accuracy of McPAT
 
-A number of changes have been made to technology specific parameters. The following table summarizes the differences made to the technology.cc file of the cacti component for the Empirical undifferentiated core / FU coeffcient :
+A number of changes have been made to technology specific parameters. The following table summarizes the differences made to the technology.cc file of the cacti component for the Empirical undifferentiated core / FU coefficient :
 
 Technology Node | McPAT v1.3 | cMcPAT
 ------------ | ------------- | -------------
