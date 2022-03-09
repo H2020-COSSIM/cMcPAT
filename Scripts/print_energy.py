@@ -152,7 +152,7 @@ def getTimefromStats(statsFile):
         if not ignores.match(line):
             statKind = statLine.match(line).group(1)
             statValue = statLine.match(line).group(2)
-            if statKind == 'sim_seconds':
+            if statKind == 'simSeconds':
                 retVal = float(statValue)
 		break	#no need to parse the whole file once the requested value has been found
     F.close()
