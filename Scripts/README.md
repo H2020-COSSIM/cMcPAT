@@ -44,7 +44,7 @@ The script can be used with the generic versions of gem5 and McPAT (available fr
 It should be noted that the script works with the following versions of gem5 and McPAT:
 - cgem5 and cMcPAT
 - McPAT v1.3
-- gem5 up tp Oct. 2017 stable release.
+- gem5 March 2022 release (v21.2.1)
 
 The print_energy.py is a simplified version of Daya Khudia's [GEM5toMcPAT](https://bitbucket.org/dskhudia/gem5tomcpat) tool, incorporating all changes addressed in the GEM5toMcPAT.py available in this repository, in addition with a few enhancements to speed up the process.
 
