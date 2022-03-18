@@ -5,33 +5,11 @@ import re
 import json
 import types
 import math
-from xml.etree import ElementTree as ET
 
-
-class PIParser(ET.XMLTreeBuilder):
-   def __init__(self):
-       ET.XMLTreeBuilder.__init__(self)
-       # assumes ElementTree 1.2.X
-       self._parser.CommentHandler = self.handle_comment
-       self._parser.ProcessingInstructionHandler = self.handle_pi
-       self._target.start("document", {})
-
-   def close(self):
-       self._target.end("document")
-       return ET.XMLTreeBuilder.close(self)
-
-   def handle_comment(self, data):
-       self._target.start(ET.Comment, {})
-       self._target.data(data)
-       self._target.end(ET.Comment)
-
-   def handle_pi(self, target, data):
-       self._target.start(ET.PI, {})
-       self._target.data(target + " " + data)
-       self._target.end(ET.PI)
+import xml.etree.cElementTree as ET
 
 def parse(source):
-    return ET.parse(source, PIParser())
+    return ET.parse(source)
 
 def main():
     global opts
@@ -95,13 +73,13 @@ def dumpMcpatOut(outFile):
                 if allStats[i] in stats:
                     expr = re.sub('stats.%s' % allStats[i], stats[allStats[i]], expr)
                 else:
-                    print "***WARNING: %s does not exist in stats***" % allStats[i]
-                    print "\t Please use the right stats in your McPAT template file"
+                    print ("***WARNING: %s does not exist in stats***" % allStats[i])
+                    print ("\t Please use the right stats in your McPAT template file")
 
             if 'config' not in expr and 'stats' not in expr:
                 stat.attrib['value'] = str(eval(expr))
     #Write out the xml file
-    if opts.verbose: print "Writing input to McPAT in: %s" % outFile 
+    if opts.verbose: print ("Writing input to McPAT in: %s" % outFile)
     templateMcpat.write(outFile)
 
 def getConfValue(confStr):
@@ -115,12 +93,12 @@ def getConfValue(confStr):
                 #this is mostly for system.cpu* as system.cpu is an array
                 #This could be made better
                 if x not in currConf[0]:
-                    print "%s does not exist in config" % currHierarchy 
+                    print ("%s does not exist in config" % currHierarchy)
                 else:
                     currConf = currConf[0][x]
             else:
-                    print "***WARNING: %s does not exist in config.***" % currHierarchy 
-                    print "\t Please use the right config param in your McPAT template file"
+                    print ("***WARNING: %s does not exist in config.***" % currHierarchy)
+                    print ("\t Please use the right config param in your McPAT template file")
         else:
             currConf = currConf[x]
         currHierarchy += "."
@@ -130,7 +108,7 @@ def getConfValue(confStr):
 def readStatsFile(statsFile):
     global stats
     stats = {}
-    if opts.verbose: print "Reading GEM5 stats from: %s" %  statsFile
+    if opts.verbose: print ("Reading GEM5 stats from: %s" %  statsFile)
     F = open(statsFile)
     ignores = re.compile(r'^---|^$')
     #Please note that changes in the gem5 stats file may require changes here.
@@ -141,29 +119,28 @@ def readStatsFile(statsFile):
         #ignore empty lines and lines starting with "---"  
         if not ignores.match(line):
             count += 1
-	    #Exceptions are used to make sure that updates to gem5 stats file do not break the 
-	    #converter.
-	    try:
-            	statKind = statLine.match(line).group(1)
-            	statValue = statLine.match(line).group(2)
-	    except Exception as e:
-	    	continue
+        #Exceptions are used to make sure that updates to gem5 stats file do not break the converter.
+        try:
+            statKind = statLine.match(line).group(1)
+            statValue = statLine.match(line).group(2)
+        except Exception as e:
+            continue
             if statValue == 'nan':
-                print "\tWarning (stats): %s is nan. Setting it to 0" % statKind
+                print ("\tWarning (stats): %s is nan. Setting it to 0" % statKind)
                 statValue = '0'
             if statKind == 'testsys.cpu.num_idle_cycles':
                 stats[statKind] = str(int(float(statValue) + 0.5))
-	    else:
-		if statKind == 'testsys.cpu.num_busy_cycles':
-			stats[statKind] = str(int(float(statValue) + 0.5))
-		else:
-			stats[statKind] = statValue
-            		
+        else:
+            if statKind == 'testsys.cpu.num_busy_cycles':
+                stats[statKind] = str(int(float(statValue) + 0.5))
+            else:
+                stats[statKind] = statValue
+            
     F.close()
 
 def readConfigFile(configFile):
     global config
-    if opts.verbose: print "Reading config from: %s" % configFile
+    if opts.verbose: print ("Reading config from: %s" % configFile)
     F = open(configFile)
     config = json.load(F)
     
@@ -171,7 +148,7 @@ def readConfigFile(configFile):
 
 def readMcpatFile(templateFile):
     global templateMcpat 
-    if opts.verbose: print "Reading McPAT template from: %s" % templateFile 
+    if opts.verbose: print ("Reading McPAT template from: %s" % templateFile)
     templateMcpat = parse(templateFile)
    
     
