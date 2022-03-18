@@ -5,7 +5,6 @@ import os
 import json
 import types
 import math
-import StringIO
 import subprocess as subp
 from optparse import OptionParser
 
@@ -26,7 +25,7 @@ class parse_node:
     def get_tree(this,indent):
         padding = ' '*indent*2
         me = padding + this.__str__()
-        kids = map(lambda x: x.get_tree(indent+1), this.leaves)
+        kids = list(map(lambda x: x.get_tree(indent+1), this.leaves))
         return me + '\n' + ''.join(kids)
         
     def getValue(this,key_list):
@@ -36,7 +35,7 @@ class parse_node:
             if len(key_list) == 1:
                 return this.value
             else:
-                kids = map(lambda x: x.getValue(key_list[1:]), this.leaves)
+                kids = list(map(lambda x: x.getValue(key_list[1:]), this.leaves))
                 #print 'kids: ' + str(kids) 
                 return ''.join(kids)
         return ''        
@@ -48,14 +47,13 @@ class parser:
 
     def dprint(this,astr):
         if this.debug:
-            print this.name,
-            print astr
+            print (this.name, astr)
 
     def __init__(this, data_in):
         this.debug = False
         this.name = 'mcpat:mcpat_parse'
-
-	buf = open(data_in)
+        
+        buf = open(data_in)
       
         this.root = parse_node('root',None,-1)
         trunk = [this.root]
@@ -66,7 +64,7 @@ class parser:
             equal = '=' in line
             colon = ':' in line
             useless = not equal and not colon
-            items = map(lambda x: x.strip(), line.split('='))
+            items = list(map(lambda x: x.strip(), line.split('=')))
 
             branch = trunk[-1]
 
@@ -119,19 +117,19 @@ def main():
         sys.exit(1)
    
     energy = getEnergy(args[0], args[1])
-    print "energy is %f mJ" % energy
+    print ("energy is %f mJ" % energy)
     
 
 def getEnergy(mcpatoutputFile, statsFile):
     leakage, dynamic = readMcPAT(mcpatoutputFile)
     runtime = getTimefromStats(statsFile)
     energy = (leakage + dynamic)*runtime
-    print "leakage: %f W, dynamic: %f W and runtime: %f sec" % (leakage, dynamic, runtime)
+    print ("leakage: %f W, dynamic: %f W and runtime: %f sec" % (leakage, dynamic, runtime))
     return energy*1000
 
 def readMcPAT(mcpatoutputFile):
     
-    print "Reading simulation time from: %s" %  mcpatoutputFile
+    print ("Reading simulation time from: %s" %  mcpatoutputFile)
     p = parser(mcpatoutputFile)
     
     leakage = p.getValue(['Processor:', 'Total Leakage'])
@@ -142,7 +140,7 @@ def readMcPAT(mcpatoutputFile):
     
 
 def getTimefromStats(statsFile):
-    if opts.verbose: print "Reading simulation time from: %s" %  statsFile
+    if opts.verbose: print ("Reading simulation time from: %s" %  statsFile)
     F = open(statsFile)
     ignores = re.compile(r'^---|^$')
     statLine = re.compile(r'([a-zA-Z0-9_\.:+-]+)\s+([-+]?[0-9]+\.[0-9]+|[0-9]+|nan)')
@@ -154,7 +152,7 @@ def getTimefromStats(statsFile):
             statValue = statLine.match(line).group(2)
             if statKind == 'simSeconds':
                 retVal = float(statValue)
-		break	#no need to parse the whole file once the requested value has been found
+                break	#no need to parse the whole file once the requested value has been found
     F.close()
     return retVal
 
