@@ -1,56 +1,42 @@
-#!/usr/bin/python
-from optparse import OptionParser
+#!/usr/bin/env python
+#
+# Converts a gem5 statistics file into a McPAT input file.
+#
+# Author: Daya S. Khudia
+# Source: https://bitbucket.org/dskhudia/gem5tomcpat
+
+import argparse
+import cProfile
+import json
+import math
+import os
 import sys
 import re
-import json
-import types
-import math
+
+# Global variables
+opt_verbose = True       # Verbose output.
+gem5_config = None       # gem5 config.json file.
+mcpat_template = None    # Parsed McPAT XML template.
+aggregated_stats = {}    # Aggregated stats.
 
 import xml.etree.cElementTree as ET
 
 def parse(source):
     return ET.parse(source)
 
-def main():
-    global opts
-    usage = "usage: %prog [options] <gem5 stats file> <gem5 config file (json)> <mcpat template file>"
-    parser = OptionParser(usage=usage)
-    parser.add_option("-q", "--quiet", 
-        action="store_false", dest="verbose", default=True,
-        help="don't print status messages to stdout")
-    parser.add_option("-o", "--out", type="string",
-        action="store", dest="out", default="mcpat-out.xml",
-        help="output file (input to McPAT)")
-    (opts, args) = parser.parse_args()
-    if len(args) != 3:
-        parser.print_help()
-        sys.exit(1)
-    readStatsFile(args[0]) #
-    readConfigFile(args[1])
-    readMcpatFile(args[2])
-    dumpMcpatOut(opts.out)
-
-def dumpMcpatOut(outFile):
-    rootElem = templateMcpat.getroot()
+def dumpMcpatOut(stats, outFile):
+    rootElem = mcpat_template.getroot()
     configMatch = re.compile(r'config\.([a-zA-Z0-9_:\.]+)')
-    #replace params with values from the GEM5 config file 
-    #for param in rootElem.iter('param'):
-    for param in rootElem.getiterator('param'):
+    # Replace params with values from the GEM5 config file
+    for param in rootElem.iter('param'):
         name = param.attrib['name']
         value = param.attrib['value']
         if 'config' in value:
             allConfs = configMatch.findall(value)
             for conf in allConfs:
                 confValue = getConfValue(conf)
-         
-#Be careful because in some cases, GEM5 seems to post a single value but inside [...]
-#python seems to think this is a list and creates problems         
-         
-                if isinstance(confValue, types.ListType):
-                    if (len(confValue)==1):
-                        confValue=confValue[0]
-     
-                    
+                if isinstance(confValue, list) and len(confValue) == 1:
+                    confValue = confValue[0]
                 value = re.sub("config."+ conf, str(confValue), value)
             if "," in value:
                 exprs = re.split(',', value)
@@ -60,10 +46,9 @@ def dumpMcpatOut(outFile):
             else:
                 param.attrib['value'] = str(eval(str(value)))
 
-    #replace stats with values from the GEM5 stats file 
+    # Replace stats with values from the GEM5 stats file
     statRe = re.compile(r'stats\.([a-zA-Z0-9_:\.]+)')
-    #for stat in rootElem.iter('stat'):
-    for stat in rootElem.getiterator('stat'):
+    for stat in rootElem.iter('stat'):
         name = stat.attrib['name']
         value = stat.attrib['value']
         if 'stats' in value:
@@ -71,27 +56,33 @@ def dumpMcpatOut(outFile):
             expr = value
             for i in range(len(allStats)):
                 if allStats[i] in stats:
-                    expr = re.sub('stats.%s' % allStats[i], stats[allStats[i]], expr)
+                    expr = re.sub('stats.%s' % allStats[i], str(int(stats[allStats[i]])), expr)
                 else:
-                    print ("***WARNING: %s does not exist in stats***" % allStats[i])
-                    print ("\t Please use the right stats in your McPAT template file")
-
+                    # gem5 does not always print every statistic because some
+                    # stats are "dependent" on others. Now, it's not clear how
+                    # many of these dependent statistics exist or why they
+                    # exist, but if the prereq is zero, then the stat doesn't
+                    # get printed. To make sure that this script treats such
+                    # stats as zero, set the expression to evaluate to 0, and
+                    # don't warn about this.
+                    expr = "0"
             if 'config' not in expr and 'stats' not in expr:
-                stat.attrib['value'] = str(eval(expr))
-    #Write out the xml file
-    if opts.verbose: print ("Writing input to McPAT in: %s" % outFile)
-    templateMcpat.write(outFile)
+                stat.attrib['value'] = str(int(eval(expr)))
+    # Write out the xml file
+    if opt_verbose:
+        print ("Writing input to McPAT in: %s" % outFile)
+    mcpat_template.write(outFile)
 
 def getConfValue(confStr):
-    spltConf = re.split('\.', confStr) 
-    currConf = config
+    spltConf = re.split('\.', confStr)
+    currConf = gem5_config
     currHierarchy = ""
     for x in spltConf:
         currHierarchy += x
         if x not in currConf:
-            if isinstance(currConf, types.ListType):
-                #this is mostly for system.cpu* as system.cpu is an array
-                #This could be made better
+            if isinstance(currConf, list):
+                # This is mostly for system.cpu* as system.cpu is an array.
+                # This could be made better
                 if x not in currConf[0]:
                     print ("%s does not exist in config" % currHierarchy)
                 else:
@@ -103,56 +94,128 @@ def getConfValue(confStr):
             currConf = currConf[x]
         currHierarchy += "."
     return currConf
-    
 
-def readStatsFile(statsFile):
-    global stats
-    stats = {}
-    if opts.verbose: print ("Reading GEM5 stats from: %s" %  statsFile)
-    F = open(statsFile)
-    ignores = re.compile(r'^---|^$')
-    #Please note that changes in the gem5 stats file may require changes here.
-    #Note for last stable version of gem5: Some statistics names are appended by numbers similar to this: 5e+10-1e+11 .
-    statLine = re.compile(r'([a-zA-Z0-9_\.:+-]+)\s+([-+]?[0-9]+\.[0-9]+|[-+]?[0-9]+|nan|inf)')
-    count = 0 
-    for line in F:
-        #ignore empty lines and lines starting with "---"  
-        if not ignores.match(line):
-            count += 1
-        #Exceptions are used to make sure that updates to gem5 stats file do not break the converter.
-        try:
-            statKind = statLine.match(line).group(1)
-            statValue = statLine.match(line).group(2)
-        except Exception as e:
+def generate_segments(myfile):
+    """ Return a buffer of lines for a stats dump. """
+    buf = []
+    begin_flag = "Begin Simulation Statistics"
+    end_flag = "End Simulation Statistics"
+    for line in myfile:
+        if begin_flag in line:
             continue
-            if statValue == 'nan':
-                print ("\tWarning (stats): %s is nan. Setting it to 0" % statKind)
-                statValue = '0'
-            if statKind == 'testsys.cpu.num_idle_cycles':
-                stats[statKind] = str(int(float(statValue) + 0.5))
+        elif end_flag in line:
+            yield buf
+            buf = []  # Clear the buffer for the next yield.
+        elif line and line.strip() and not line.startswith("#"):
+            buf.append(line)
+
+def parse_segment(file_segment):
+    stats = {}
+    for line in file_segment:
+        parts = line.split()
+        statKind = parts[0]
+        statValue = parts[1]
+        if statValue == 'nan':
+            # Don't let nan stats mess up everything else, so set it to
+            # zero. But there are a lot of them, so don't issue warnings on all
+            # of them.
+            statValue = 0
+        # We must convert to float in case we want to aggregate.
+        stats[statKind] = float(statValue)
+    return stats
+
+def aggregateStats(stats):
+    """ Aggregates the current set of stats into a global copy. """
+    global aggregated_stats
+    for stat, value in stats.iteritems():
+        if "duty_cycle" in stat:
+            # Duty cycles are the only stats we care about that we don't want
+            # aggregated.
+            continue
+        if stat in aggregated_stats:
+            aggregated_stats[stat] = aggregated_stats[stat] + value
         else:
-            if statKind == 'testsys.cpu.num_busy_cycles':
-                stats[statKind] = str(int(float(statValue) + 0.5))
-            else:
-                stats[statKind] = statValue
-            
-    F.close()
+            aggregated_stats[stat] = value
 
 def readConfigFile(configFile):
-    global config
-    if opts.verbose: print ("Reading config from: %s" % configFile)
+    global gem5_config
+    if opt_verbose:
+        print ("Reading config from: %s" % configFile)
     F = open(configFile)
-    config = json.load(F)
-    
+    gem5_config = json.load(F)
     F.close()
 
 def readMcpatFile(templateFile):
-    global templateMcpat 
-    if opts.verbose: print ("Reading McPAT template from: %s" % templateFile)
-    templateMcpat = parse(templateFile)
-   
-    
-    
+    global mcpat_template
+    if opt_verbose:
+        print ("Reading McPAT template from: %s" % templateFile)
+    mcpat_template = parse(templateFile)
+
+def process(file_segment, mcpat_out_fname, out_dir, phase=None, aggregate=False):
+    """ Process the stats file and generate a McPAT input XML file.
+
+    phase should be set to None if we only want a single pass of the gem5 stats
+    file. Otherwise, it should start from zero.
+    """
+    stats = parse_segment(file_segment)
+    if phase == None or not aggregate:
+        ext_idx = mcpat_out_fname.rfind(".")
+        prefix = mcpat_out_fname[:ext_idx]
+        ext = mcpat_out_fname[ext_idx+1:]
+        if phase == None:
+          new_name = "%s.%s" % (prefix, ext)
+        else:
+          new_name = "%s.%d.%s" % (prefix, phase, ext)
+        mcpat_out_fname = os.path.join(out_dir, new_name)
+        dumpMcpatOut(stats, mcpat_out_fname)
+    else:
+        aggregateStats(stats)
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("gem5_stats_file", help="gem5 statistics file.")
+    parser.add_argument("gem5_config_file", help="gem5 config.json")
+    parser.add_argument("mcpat_template_file", help="McPAT template file")
+    parser.add_argument("-m", "--multiple_phases", action="store_true",
+        help="The stats file contains multiple stats dumps for multiple program phases.")
+    parser.add_argument("-a", "--aggregate", action="store_true",
+        help="If we have multiple phases, aggregate all phases instead of "
+        "writing multiple McPAT files.")
+    parser.add_argument("-q", "--quiet",
+        action="store_false", dest="verbose", default=True,
+        help="don't print status messages to stdout")
+    parser.add_argument("-d", "--dir",
+        default=".", help="McPAT input file output directory.")
+    parser.add_argument("-o", "--out",
+        action="store", dest="out", default="mcpat-out.xml",
+        help="output file (input to McPAT)")
+    args = parser.parse_args()
+
+    if not args.verbose:
+        global opt_verbose
+        opt_verbose = False
+
+    phase = None
+    if args.multiple_phases:
+        phase = 0
+
+    # These only need to be read once.
+    readConfigFile(args.gem5_config_file)
+    readMcpatFile(args.mcpat_template_file)
+
+    with open(args.gem5_stats_file) as gem5_stats_file:
+        for segment in generate_segments(gem5_stats_file):
+            process(segment,
+                    args.out,
+                    args.dir,
+                    phase=phase,
+                    aggregate=args.aggregate)
+            if args.multiple_phases:
+                phase = phase + 1
+            else:
+                return
+        if args.aggregate:
+            dumpMcpatOut(aggregated_stats, os.path.join(args.dir, args.out))
 
 if __name__ == '__main__':
     main()
