@@ -27,7 +27,7 @@
 		<param name="core_tech_node" value="45"/><!-- nm -->
 		
 		<!-- EDIT Values from GEM5 info -->
-		<param name="target_core_clockrate" value="config.testsys.cpu_clk_domain.clock"/><!--MHz -->
+		<param name="target_core_clockrate" value="config.system.clk_domain.clock"/><!--MHz -->
 		<!-- END EDIT Values from GEM5 info -->
 		
 		<param name="temperature" value="360"/> <!-- Kelvin -->
@@ -38,7 +38,7 @@
 		<param name="interconnect_projection_type" value="0"/><!--0: aggressive wire technology; 1: conservative wire technology -->
 		<param name="device_type" value="0"/><!--0: HP(High Performance Type); 1: LSTP(Low standby power) 2: LOP (Low Operating Power)  -->
 		<param name="longer_channel_device" value="1"/><!-- 0 no use; 1 use when possible -->
-		<param name="power_gating" value="1"/><!-- 0 not enabled; 1 enabled -->
+		<param name="power_gating" value="0"/><!-- 0 not enabled; 1 enabled -->
 		<param name="machine_bits" value="64"/>
 		<param name="virtual_address_width" value="64"/>
 		<param name="physical_address_width" value="52"/>
@@ -47,9 +47,9 @@
 			default value is machine_bits, if not set --> 
 		
 		<!-- EDITS Values from GEM5 info--> 
-		<stat name="total_cycles" value="stats.testsys.cpu.numCycles"/>
-		<stat name="idle_cycles" value="stats.testsys.cpu.num_idle_cycles"/>
-		<stat name="busy_cycles"  value="stats.testsys.cpu.num_busy_cycles"/> 
+		<stat name="total_cycles" value="stats.system.cpu.numCycles"/>
+		<stat name="idle_cycles" value="stats.system.cpu.exec_context.thread_0.numIdleCycles"/>
+		<stat name="busy_cycles"  value="stats.system.cpu.exec_context.thread_0.numBusyCycles"/> 
 		<!-- END EDITS Values from GEM5 info -->
 		
 			<!--This page size(B) is complete different from the page size in Main memo section. this page size is the size of 
@@ -59,7 +59,7 @@
 			
 			<!-- EDIT Values from GEM5 info -->
 			<!-- Core property -->
-			<param name="clock_rate" value="config.testsys.cpu_clk_domain.clock"/>
+			<param name="clock_rate" value="config.system.clk_domain.clock"/>
 			<!-- END EDIT Values from GEM5 info -->
 			
 			<!-- for cores with unknown timing, set to 0 to force off the opt flag -->
@@ -76,7 +76,7 @@
 			<!-- END EDIT AtomicSimpleCPU -->
 			
 			<!-- EDIT Values from GEM5 info -->
-			<param name="number_hardware_threads" value="config.testsys.cpu.numThreads"/>
+			<param name="number_hardware_threads" value="1"/> <!-- COSSIM: Define Number of Cores -->
 			<!-- END EDIT Values from GEM5 info -->
 			
 			<!-- number_instruction_fetch_ports(icache ports) is always 1 in single-thread processor,
@@ -242,22 +242,22 @@
 			<!-- please note: if target architecture is X86, then all the instructions refer to (fused) micro-ops -->
 			
 			<!-- EDIT Values from GEM5 info -->
-			<stat name="total_instructions" value="stats.testsys.cpu.op_class::total"/>
-			<stat name="int_instructions" value="stats.testsys.cpu.op_class::No_OpClass + stats.testsys.cpu.op_class::IntAlu + stats.testsys.cpu.op_class::IntMult + stats.testsys.cpu.op_class::IntDiv + stats.testsys.cpu.op_class::IprAccess"/>
-			<stat name="fp_instructions" value="stats.testsys.cpu.op_class::FloatAdd + stats.testsys.cpu.op_class::FloatCmp + stats.testsys.cpu.op_class::FloatCvt + stats.testsys.cpu.op_class::FloatMult + stats.testsys.cpu.op_class::FloatDiv + stats.testsys.cpu.op_class::FloatSqrt"/>
-			<stat name="branch_instructions" value="stats.testsys.cpu.Branches"/>
+			<stat name="total_instructions" value="stats.system.cpu.exec_context.thread_0.statExecutedInstType::total"/>
+			<stat name="int_instructions" value="stats.system.cpu.exec_context.thread_0.statExecutedInstType::No_OpClass + stats.system.cpu.exec_context.thread_0.statExecutedInstType::IntAlu + stats.system.cpu.exec_context.thread_0.statExecutedInstType::IntMult + stats.system.cpu.exec_context.thread_0.statExecutedInstType::IntDiv + stats.system.cpu.exec_context.thread_0.statExecutedInstType::IprAccess"/>
+			<stat name="fp_instructions" value="stats.system.cpu.exec_context.thread_0.statExecutedInstType::FloatAdd + stats.system.cpu.exec_context.thread_0.statExecutedInstType::FloatCmp + stats.system.cpu.exec_context.thread_0.statExecutedInstType::FloatCvt + stats.system.cpu.exec_context.thread_0.statExecutedInstType::FloatMult + stats.system.cpu.exec_context.thread_0.statExecutedInstType::FloatDiv + stats.system.cpu.exec_context.thread_0.statExecutedInstType::FloatSqrt"/>
+			<stat name="branch_instructions" value="stats.system.cpu.exec_context.thread_0.numBranches"/>
 			<!--<stat name="branch_mispredictions" value="stats.testsys.cpu.branchPred.condIncorrect"/>-->
-			<stat name="load_instructions" value="stats.testsys.cpu.op_class::MemRead + stats.testsys.cpu.op_class::InstPrefetch"/>
-			<stat name="store_instructions" value="stats.testsys.cpu.op_class::MemWrite"/>
+			<stat name="load_instructions" value="stats.system.cpu.exec_context.thread_0.statExecutedInstType::MemRead + stats.system.cpu.exec_context.thread_0.statExecutedInstType::InstPrefetch"/>
+			<stat name="store_instructions" value="stats.system.cpu.exec_context.thread_0.statExecutedInstType::MemWrite"/>
 			<stat name="committed_instructions" value="stats.testsys.cpu.committedOps"/>
 			<stat name="committed_int_instructions" value="stats.testsys.cpu.num_int_insts"/>
 			<stat name="committed_fp_instructions" value="stats.testsys.cpu.num_fp_insts"/>
 			<stat name="pipeline_duty_cycle" value="1"/><!--<=1, runtime_ipc/peak_ipc; averaged for all cores if homogeneous -->
 			<!-- the following cycle stats are used for heterogeneous cores only, 
 				please ignore them if homogeneous cores -->
-			<stat name="total_cycles" value="stats.testsys.cpu.numCycles"/>
-			<stat name="idle_cycles" value="stats.testsys.cpu.num_idle_cycles"/>
-			<stat name="busy_cycles"  value="stats.testsys.cpu.num_busy_cycles"/>
+			<stat name="total_cycles" value="stats.system.cpu.numCycles"/>
+			<stat name="idle_cycles" value="stats.system.cpu.exec_context.thread_0.numIdleCycles"/>
+			<stat name="busy_cycles"  value="stats.system.cpu.exec_context.thread_0.numBusyCycles"/>
 			<!-- instruction buffer stats -->
 			<!-- ROB stats, both RS and Phy based OoOs have ROB
 			performance simulator should capture the difference on accesses,
@@ -299,19 +299,19 @@
 			<!-- END AtomicSimpleCPU -->
 
 			<!--  RF accesses -->
-			<stat name="int_regfile_reads" value="stats.testsys.cpu.num_int_register_reads"/>
-			<stat name="float_regfile_reads" value="stats.testsys.cpu.num_fp_register_reads"/>
-			<stat name="int_regfile_writes" value="stats.testsys.cpu.num_int_register_writes"/>
-			<stat name="float_regfile_writes" value="stats.testsys.cpu.num_fp_register_writes"/>
+			<stat name="int_regfile_reads" value="stats.system.cpu.exec_context.thread_0.numIntRegReads"/>
+			<stat name="float_regfile_reads" value="stats.system.cpu.exec_context.thread_0.numFpRegReads"/>
+			<stat name="int_regfile_writes" value="stats.system.cpu.exec_context.thread_0.numIntRegWrites"/>
+			<stat name="float_regfile_writes" value="stats.system.cpu.exec_context.thread_0.numFpRegWrites "/>
 			<!-- accesses to the working reg -->
-			<stat name="function_calls" value="stats.testsys.cpu.num_func_calls"/>
+			<stat name="function_calls" value="stats.system.cpu.exec_context.thread_0.numCallsReturns"/>
 			<!--<stat name="context_switches" value="stats.testsys.cpu.workload.num_syscalls"/> -->
 
 			<!-- Number of Windows switches (number of function calls and returns)-->
 			<!-- Alu stats by default, the processor has one FPU that includes the divider and 
 			 multiplier. The fpu accesses should include accesses to multiplier and divider  -->
-			<stat name="ialu_accesses" value="stats.testsys.cpu.num_int_alu_accesses"/>			
-			<stat name="fpu_accesses" value="stats.testsys.cpu.num_fp_alu_accesses"/>
+			<stat name="ialu_accesses" value="stats.system.cpu.exec_context.thread_0.numIntAluAccesses"/>			
+			<stat name="fpu_accesses" value="stats.system.cpu.exec_context.thread_0.numFpAluAccesses"/>
 			<stat name="mul_accesses" value="0"/>
 			<stat name="cdb_alu_accesses" value="0"/>
 			<stat name="cdb_mul_accesses" value="0"/>
@@ -359,10 +359,10 @@
 			
 			<!-- EDIT Values from GEM5 info -->
 			<component id="system.core0.itlb" name="itlb">
-				<param name="number_entries" value="config.testsys.cpu.itb.size"/>
+				<param name="number_entries" value="64"/>
 				<!-- <stat name="total_accesses" value="stats.testsys.cpu.itb_walker_cache.tags.data_accesses"/> -->
-				<stat name="total_accesses" value="stats.testsys.cpu.itb.accesses"/>
-				<stat name="total_misses" value="stats.testsys.cpu.itb.misses"/>
+				<stat name="total_accesses" value="stats.system.cpu.mmu.itb.wrAccesses + stats.system.cpu.mmu.itb.rdAccesses"/>
+				<stat name="total_misses" value="stats.system.cpu.mmu.itb.wrMisses + stats.system.cpu.mmu.itb.rdMisses"/>
 				<stat name="conflicts" value="0"/>
 			<!-- END EDIT Values from GEM5 info -->
 				<!-- there is no write requests to itlb although writes happen to itlb after miss, 
@@ -375,11 +375,11 @@
 			
 			<component id="system.core0.dtlb" name="dtlb">
 				<!-- EDIT Values from GEM5 info -->
-				<param name="number_entries" value="config.testsys.cpu.dtb.size"/><!--dual threads-->
+				<param name="number_entries" value="64"/><!--dual threads-->
 				<!-- <stat name="total_accesses" value="stats.testsys.cpu.dtb_walker_cache.tags.data_accesses"/>
 				<stat name="total_misses" value="stats.testsys.cpu.dtb_walker_cache.tags.data_accesses"/> -->
-				<stat name="total_accesses" value="stats.testsys.cpu.dtb.accesses"/>
-				<stat name="total_misses" value="stats.testsys.cpu.dtb.misses"/>
+				<stat name="total_accesses" value="stats.system.cpu.mmu.dtb.rdAccesses + stats.system.cpu.mmu.dtb.wrAccesses "/>
+				<stat name="total_misses" value="stats.system.cpu.mmu.dtb.rdMisses + stats.system.cpu.mmu.dtb.wrMisses"/>
 				<!-- END EDIT Values from GEM5 info -->
 				<stat name="conflicts" value="0"/>	
 			</component>
@@ -417,7 +417,7 @@
 <!--**********************************************************************-->
 		<component id="system.NoC0" name="noc0">
 			<!-- EDIT Values from GEM5 info / AtomicSimpleCPU -->
-			<param name="clockrate" value="config.testsys.clk_domain.clock"/>
+			<param name="clockrate" value="config.system.clk_domain.clock"/>
 			<!-- END EDIT Values from GEM5 info / AtomicSimpleCPU -->
 			<param name="vdd" value="0"/><!-- 0 means using ITRS default vdd -->
 			<param name="type" value="0"/>
@@ -485,9 +485,9 @@
 			<stat name="memory_writes" value="stats.testsys.l2.ReadExReq_misses::total"/> -->
 
 			<!-- EDIT AtomicSimpleCPU -->			
-			<stat name="memory_accesses" value="stats.testsys.mem_ctrls.num_writes::total + stats.testsys.mem_ctrls.num_reads::total"/>
+			<!--<stat name="memory_accesses" value="stats.testsys.mem_ctrls.num_writes::total + stats.testsys.mem_ctrls.num_reads::total"/>
 			<stat name="memory_reads" value="stats.testsys.mem_ctrls.num_reads::total"/>
-			<stat name="memory_writes" value="stats.testsys.mem_ctrls.num_writes::total"/>
+            <stat name="memory_writes" value="stats.testsys.mem_ctrls.num_writes::total"/> -->
 			<!-- END EDIT AtomicSimpleCPU -->
 			<!-- END EDIT Values from GEM5 info -->
 			
